@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 
 class DateSelectionScreen extends StatelessWidget {
-  const DateSelectionScreen({super.key, required this.onDateSelected});
+  const DateSelectionScreen(
+      {super.key, required this.onDateSelected, required DateTime initialDate});
 
   final Function(DateTime) onDateSelected;
 

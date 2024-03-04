@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/Weather.dart';
 import '../services/WeatherService.dart';
-import 'DateSelectionScreen.dart';
+import 'package:hawa/screens/DateSelectionScreen.dart';
 import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
@@ -13,10 +13,10 @@ import '../models/crop.dart'; // Import the Crop model
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
-    super.key,
+    Key? key,
     required this.isDarkTheme,
     required this.toggleTheme,
-  });
+  }) : super(key: key);
 
   final bool isDarkTheme;
   final void Function(bool isDark) toggleTheme;
@@ -29,13 +29,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<Weather> _weatherData;
   late Future<List<Weather>> _hourlyForecastData;
   late DateTime _lastRefreshedTime;
+  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
     _lastRefreshedTime = DateTime.now();
-    _weatherData = _fetchWeatherData(DateTime.now());
-    _hourlyForecastData = _fetchHourlyForecastData(DateTime.now());
+    _selectedDate =
+        DateTime.now(); // Initialize selected date with current date
+    _weatherData = _fetchWeatherData(_selectedDate);
+    _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
   }
 
   Future<Weather> _fetchWeatherData(DateTime selectedDate) async {
@@ -88,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshWeather() async {
     setState(() {
-      _weatherData = _fetchWeatherData(DateTime.now());
+      _weatherData = _fetchWeatherData(_selectedDate);
     });
   }
 
@@ -137,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
       double longitude = position.longitude;
 
       List<Weather> hourlyForecast = await WeatherService.fetchHourlyForecast(
-          latitude, longitude, DateTime.now());
+          latitude, longitude, _selectedDate); // Use selected date here
 
       Navigator.push(
         context,
@@ -156,8 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Define a function to navigate to the date selection screen
-  void _navigateToDateSelectionScreen(BuildContext context) {
-    Navigator.push(
+  void _navigateToDateSelectionScreen(BuildContext context) async {
+    DateTime? selectedDate = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DateSelectionScreen(
@@ -167,9 +170,18 @@ class _HomeScreenState extends State<HomeScreen> {
             _fetchHourlyForecastData(selectedDate);
             Navigator.pop(context); // Pop the date selection screen
           },
+          initialDate: _selectedDate,
         ),
       ),
     );
+
+    if (selectedDate != null) {
+      setState(() {
+        _selectedDate = selectedDate;
+        _weatherData = _fetchWeatherData(_selectedDate);
+        _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
+      });
+    }
   }
 
   // Function to filter crops based on current weather conditions
@@ -241,14 +253,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () => _refreshWeather(),
-        child: FutureBuilder<Weather>(
+        child: FutureBuilder<Weather?>(
           future: _weatherData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
+            } else if (snapshot.hasError || snapshot.data == null) {
               return Center(
-                child: Text('Error: ${snapshot.error}'),
+                child: Text('Error: Unable to fetch weather data'),
               );
             } else {
               final weather = snapshot.data!;
@@ -298,14 +310,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       // Add the FutureBuilder for hourly forecast here
-                      FutureBuilder<List<Weather>>(
+                      FutureBuilder<List<Weather>?>(
                         future: _hourlyForecastData,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
                                 child: CircularProgressIndicator());
-                          } else if (snapshot.hasError || !snapshot.hasData) {
+                          } else if (snapshot.hasError ||
+                              snapshot.data == null) {
                             // Handle error or empty data
                             return const Center(
                               child:
