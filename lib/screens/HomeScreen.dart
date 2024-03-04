@@ -176,6 +176,129 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: const Text(
+  //         'Hawa',
+  //         style: TextStyle(
+  //           fontWeight: FontWeight.bold,
+  //           fontSize: 24,
+  //         ),
+  //       ),
+  //       actions: [
+  //         IconButton(
+  //           icon: const Icon(Icons.search),
+  //           onPressed: () async {
+  //             Weather? selectedWeather = await Navigator.push(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => const SearchScreen()),
+  //             );
+  //             if (selectedWeather != null) {
+  //               setState(() {
+  //                 _weatherData = Future.value(selectedWeather);
+  //               });
+  //             }
+  //           },
+  //         ),
+  //         IconButton(
+  //           icon: const Icon(Icons.settings),
+  //           onPressed: () {
+  //             _navigateToSettingsScreen(context);
+  //           },
+  //         ),
+  //       ],
+  //     ),
+  //     body: RefreshIndicator(
+  //       onRefresh: () => _refreshWeather(),
+  //       child: FutureBuilder<Weather>(
+  //         future: _weatherData,
+  //         builder: (context, snapshot) {
+  //           if (snapshot.connectionState == ConnectionState.waiting) {
+  //             return Center(child: CircularProgressIndicator());
+  //           } else if (snapshot.hasError) {
+  //             return Center(
+  //               child: Text('Error: ${snapshot.error}'),
+  //             );
+  //           } else {
+  //             final weather = snapshot.data!;
+  //             final List<Crop> suggestedCrops = filterCropsByWeather(weather);
+  //
+  //             return SingleChildScrollView(
+  //               child: Padding(
+  //                 padding: const EdgeInsets.all(16),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     _buildWeatherDisplay(weather),
+  //                     const SizedBox(height: 20),
+  //                     if (suggestedCrops.isNotEmpty) ...[
+  //                       Text(
+  //                         'Suggested Crops:',
+  //                         style: TextStyle(
+  //                           fontSize: 20,
+  //                           fontWeight: FontWeight.bold,
+  //                         ),
+  //                       ),
+  //                       const SizedBox(height: 10),
+  //                       Container(
+  //                         height: 120,
+  //                         child: ListView.builder(
+  //                           scrollDirection: Axis.horizontal,
+  //                           itemCount: suggestedCrops.length,
+  //                           itemBuilder: (context, index) {
+  //                             final crop = suggestedCrops[index];
+  //                             return Card(
+  //                               elevation: 2,
+  //                               child: Padding(
+  //                                 padding: const EdgeInsets.all(8.0),
+  //                                 child: Text(crop.name),
+  //                               ),
+  //                             );
+  //                           },
+  //                         ),
+  //                       ),
+  //                     ],
+  //                     const SizedBox(height: 20),
+  //                     Text(
+  //                       'Last Updated: ${DateFormat.yMd().add_jm().format(_lastRefreshedTime)}',
+  //                       style: TextStyle(
+  //                         fontSize: 14,
+  //                         color: Theme.of(context).textTheme.caption!.color,
+  //                       ),
+  //                     ),
+  //                   ],
+  //
+  //                 ),
+  //               ),
+  //             );
+  //           }
+  //         },
+  //       ),
+  //
+  //     ),
+  //     floatingActionButton: Column(
+  //       mainAxisAlignment: MainAxisAlignment.end,
+  //       crossAxisAlignment: CrossAxisAlignment.end,
+  //       children: [
+  //         FloatingActionButton(
+  //           heroTag:
+  //               'hourly_forecast', // Unique hero tag for the first FloatingActionButton
+  //           onPressed: () => _navigateToHourlyForecastScreen(context),
+  //           child: const Icon(Icons.access_time),
+  //         ),
+  //         const SizedBox(height: 10),
+  //         FloatingActionButton(
+  //           heroTag:
+  //               'daily_forecast', // Unique hero tag for the second FloatingActionButton
+  //           onPressed: () => _navigateToDailyForecastScreen(context),
+  //           child: const Icon(Icons.calendar_today),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -268,6 +391,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Theme.of(context).textTheme.caption!.color,
                         ),
                       ),
+                      // Add the FutureBuilder for hourly forecast here
+                      FutureBuilder<List<Weather>>(
+                        future: _hourlyForecastData,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError || !snapshot.hasData) {
+                            // Handle error or empty data
+                            return Center(
+                              child:
+                                  Text('Error fetching hourly forecast data'),
+                            );
+                          } else {
+                            // Process and display the fetched hourly forecast data
+                            List<Weather> hourlyForecast = snapshot.data!;
+                            // Build your UI using the hourly forecast data
+                            return HourlyForecastScreen(
+                                hourlyForecast: hourlyForecast);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -281,15 +426,13 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           FloatingActionButton(
-            heroTag:
-                'hourly_forecast', // Unique hero tag for the first FloatingActionButton
+            heroTag: 'hourly_forecast',
             onPressed: () => _navigateToHourlyForecastScreen(context),
             child: const Icon(Icons.access_time),
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
-            heroTag:
-                'daily_forecast', // Unique hero tag for the second FloatingActionButton
+            heroTag: 'daily_forecast',
             onPressed: () => _navigateToDailyForecastScreen(context),
             child: const Icon(Icons.calendar_today),
           ),

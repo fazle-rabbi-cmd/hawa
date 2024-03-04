@@ -5,16 +5,14 @@ import '../models/Weather.dart';
 class HourlyForecastScreen extends StatelessWidget {
   final List<Weather> hourlyForecast;
 
-  const HourlyForecastScreen({Key? key, required this.hourlyForecast})
-      : super(key: key);
+  const HourlyForecastScreen({super.key, required this.hourlyForecast});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Hourly Forecast'),
-      ),
-      body: ListView.builder(
+    return SizedBox(
+      height: 120, // Setting a fixed height to constrain the widget
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
         itemCount: hourlyForecast.length,
         itemBuilder: (context, index) {
           final weather = hourlyForecast[index];

@@ -1,35 +1,50 @@
 import 'package:flutter/material.dart';
 
 class SplashScreenWidget extends StatelessWidget {
+  const SplashScreenWidget({Key? key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue, // Customize the background color
+      backgroundColor: Colors.blue, // Background color
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              FlutterLogo(
-                size: 100, // Adjust the size of the logo
-                textColor: Colors.white, // Customize the color of the logo
+              // Logo
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Image.asset(
+                  'assets/custom_logo.png', // Path to your custom logo image
+                  width: 150, // Logo width
+                  height: 150, // Logo height
+                  color: Colors.white, // Logo color
+                ),
               ),
-              SizedBox(height: 20),
+              // App name
               Text(
-                'Your App Name',
+                'Hawa',
                 style: TextStyle(
-                  color: Colors.white, // Customize the color of the text
-                  fontSize: 24, // Adjust the font size
-                  fontWeight: FontWeight.bold, // Adjust the font weight
+                  color: Colors.white, // Text color
+                  fontSize: 24, // Text size
+                  fontWeight: FontWeight.bold, // Text weight
                 ),
               ),
               SizedBox(height: 10),
+              // Loading message
               Text(
                 'Loading...',
                 style: TextStyle(
-                  color: Colors.white, // Customize the color of the text
-                  fontSize: 16, // Adjust the font size
+                  color: Colors.white, // Text color
+                  fontSize: 16, // Text size
                 ),
+              ),
+              SizedBox(height: 20),
+              // Progress indicator
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white), // Indicator color
               ),
             ],
           ),
