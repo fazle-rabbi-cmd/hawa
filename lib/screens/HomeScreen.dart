@@ -281,11 +281,15 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           FloatingActionButton(
+            heroTag:
+                'hourly_forecast', // Unique hero tag for the first FloatingActionButton
             onPressed: () => _navigateToHourlyForecastScreen(context),
             child: const Icon(Icons.access_time),
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
+            heroTag:
+                'daily_forecast', // Unique hero tag for the second FloatingActionButton
             onPressed: () => _navigateToDailyForecastScreen(context),
             child: const Icon(Icons.calendar_today),
           ),
