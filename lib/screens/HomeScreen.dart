@@ -9,7 +9,7 @@ import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
 import 'DailyForecastScreen.dart';
-import '../models/crop.dart'; // Import the Crop model
+import '../models/crop.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -26,8 +26,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<Weather> _weatherData;
-  late Future<List<Weather>> _hourlyForecastData;
+  late Future<Weather?> _weatherData;
+  late Future<List<Weather>?> _hourlyForecastData;
   late DateTime _lastRefreshedTime;
   late DateTime _selectedDate;
 
@@ -35,13 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _lastRefreshedTime = DateTime.now();
-    _selectedDate =
-        DateTime.now(); // Initialize selected date with current date
+    _selectedDate = DateTime.now();
     _weatherData = _fetchWeatherData(_selectedDate);
     _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
   }
 
-  Future<Weather> _fetchWeatherData(DateTime selectedDate) async {
+  Future<Weather?> _fetchWeatherData(DateTime selectedDate) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -66,11 +65,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (kDebugMode) {
         print('Error fetching weather data: $e');
       }
-      rethrow;
+      // Handle error gracefully
+      return null;
     }
   }
 
-  Future<List<Weather>> _fetchHourlyForecastData(DateTime selectedDate) async {
+  Future<List<Weather>?> _fetchHourlyForecastData(DateTime selectedDate) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -79,13 +79,16 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      List<Weather> hourlyForecast = await WeatherService.fetchHourlyForecast(
+      List<Weather>? hourlyForecast = await WeatherService.fetchHourlyForecast(
           latitude, longitude, selectedDate);
 
       return hourlyForecast;
     } catch (e) {
-      print('Error fetching hourly forecast data: $e');
-      throw Exception('Failed to fetch hourly forecast data');
+      if (kDebugMode) {
+        print('Error fetching hourly forecast data: $e');
+      }
+      // Handle error gracefully
+      return null;
     }
   }
 
@@ -111,17 +114,19 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      List<Weather> dailyForecast =
+      List<Weather>? dailyForecast =
           await WeatherService.fetchDailyForecast(latitude, longitude);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DailyForecastScreen(
-            dailyForecast: dailyForecast,
+      if (dailyForecast != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DailyForecastScreen(
+              dailyForecast: dailyForecast,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error navigating to daily forecast screen: $e');
@@ -139,17 +144,19 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      List<Weather> hourlyForecast = await WeatherService.fetchHourlyForecast(
-          latitude, longitude, _selectedDate); // Use selected date here
+      List<Weather>? hourlyForecast = await WeatherService.fetchHourlyForecast(
+          latitude, longitude, _selectedDate);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HourlyForecastScreen(
-            hourlyForecast: hourlyForecast,
+      if (hourlyForecast != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HourlyForecastScreen(
+              hourlyForecast: hourlyForecast,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching hourly forecast data: $e');
@@ -158,17 +165,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Define a function to navigate to the date selection screen
   void _navigateToDateSelectionScreen(BuildContext context) async {
     DateTime? selectedDate = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DateSelectionScreen(
-          onDateSelected: (selectedDate) {
-            // Handle the selected date
-            _fetchWeatherData(selectedDate);
-            _fetchHourlyForecastData(selectedDate);
-            Navigator.pop(context); // Pop the date selection screen
+          onDateSelected: (selectedDate) async {
+            _selectedDate = selectedDate;
+            _weatherData = _fetchWeatherData(_selectedDate);
+            _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
+            Navigator.pop(context);
           },
           initialDate: _selectedDate,
         ),
@@ -184,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Function to filter crops based on current weather conditions
   List<Crop> filterCropsByWeather(Weather weather) {
     final List<Crop> crops = [
       Crop(
@@ -200,7 +205,6 @@ class _HomeScreenState extends State<HomeScreen> {
           name: 'Potatoes',
           temperatureRange: [10, 20],
           humidityRange: [50, 70]),
-      // Add more crops here
     ];
 
     return crops.where((crop) {
@@ -309,7 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Theme.of(context).textTheme.caption!.color,
                         ),
                       ),
-                      // Add the FutureBuilder for hourly forecast here
                       FutureBuilder<List<Weather>?>(
                         future: _hourlyForecastData,
                         builder: (context, snapshot) {
@@ -319,15 +322,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: CircularProgressIndicator());
                           } else if (snapshot.hasError ||
                               snapshot.data == null) {
-                            // Handle error or empty data
                             return const Center(
                               child:
                                   Text('Error fetching hourly forecast data'),
                             );
                           } else {
-                            // Process and display the fetched hourly forecast data
                             List<Weather> hourlyForecast = snapshot.data!;
-                            // Build your UI using the hourly forecast data
                             return HourlyForecastScreen(
                                 hourlyForecast: hourlyForecast);
                           }
