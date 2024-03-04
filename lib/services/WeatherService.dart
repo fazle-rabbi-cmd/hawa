@@ -56,6 +56,7 @@ class WeatherService {
             description: weatherDescription,
             locationName: locationName,
             weatherIcon: weatherIcon,
+            date: DateTime.now(),
           );
         } else {
           throw Exception('Failed to fetch weather icon');

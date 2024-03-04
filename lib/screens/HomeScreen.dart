@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/Weather.dart';
 import '../services/WeatherService.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
+import 'DailyForecastScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -34,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<Weather> _fetchWeatherData() async {
     try {
-      // Get current position
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -42,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      // Fetch weather data using current location coordinates
       Weather? weather =
           await WeatherService.fetchWeatherData(latitude, longitude);
 
@@ -51,15 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _weatherData = Future.value(weather);
           _lastRefreshedTime = DateTime.now();
         });
-        return weather; // Return the fetched weather data
+        return weather;
       } else {
         throw Exception('Failed to fetch weather data');
       }
     } catch (e) {
-      // Handle error gracefully
-      if (kDebugMode) {
-        print('Error fetching weather data: $e');
-      }
+      print('Error fetching weather data: $e');
       rethrow;
     }
   }
@@ -74,6 +69,17 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => SettingsScreen()),
+    );
+  }
+
+  void _navigateToDailyForecastScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DailyForecastScreen(
+          dailyForecast: [], // Pass daily forecast data here
+        ),
+      ),
     );
   }
 
@@ -129,6 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWeatherDisplay(weather),
+                    _buildDailyWeatherCard(weather),
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -146,6 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _navigateToDailyForecastScreen(context),
+        child: const Icon(Icons.calendar_today),
       ),
     );
   }
@@ -228,6 +239,21 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const TextStyle(fontSize: 16),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDailyWeatherCard(Weather weather) {
+    return Card(
+      child: InkWell(
+        onTap: () => _navigateToDailyForecastScreen(context),
+        child: ListTile(
+          title: const Text('Daily Weather Info'),
+          subtitle: Text(
+            'Temperature: ${weather.temperature.toStringAsFixed(1)}°C',
+          ),
+          trailing: const Icon(Icons.arrow_forward),
+        ),
       ),
     );
   }

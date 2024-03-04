@@ -128,25 +128,26 @@ class Weather {
   final String description;
   final String locationName;
   final Uint8List weatherIcon;
+  final DateTime date;
 
-  Weather({
-    required this.temperature,
-    required this.feelsLike,
-    required this.precipitation,
-    required this.windSpeed,
-    required this.windDirection,
-    required this.humidity,
-    required this.chanceOfRain,
-    required this.aqi,
-    required this.uvIndex,
-    required this.pressure,
-    required this.visibility,
-    required this.sunriseTime,
-    required this.sunsetTime,
-    required this.description,
-    required this.locationName,
-    required this.weatherIcon,
-  });
+  Weather(
+      {required this.temperature,
+      required this.feelsLike,
+      required this.precipitation,
+      required this.windSpeed,
+      required this.windDirection,
+      required this.humidity,
+      required this.chanceOfRain,
+      required this.aqi,
+      required this.uvIndex,
+      required this.pressure,
+      required this.visibility,
+      required this.sunriseTime,
+      required this.sunsetTime,
+      required this.description,
+      required this.locationName,
+      required this.weatherIcon,
+      required this.date});
 
   static Future<Weather?> fromJson(Map<String, dynamic> data) async {
     try {
@@ -179,6 +180,7 @@ class Weather {
         description: weather['description'],
         locationName: data['name'],
         weatherIcon: iconBytes,
+        date: DateTime.now(),
       );
     } catch (e) {
       // Handle parsing errors
