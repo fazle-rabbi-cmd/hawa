@@ -8,6 +8,7 @@ import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
 import 'DailyForecastScreen.dart';
 import 'package:hawa/widgets/HourlyWeatherCard.dart';
+import '../models/crop.dart'; // Import the Crop model
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -147,6 +148,35 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Function to filter crops based on current weather conditions
+  List<Crop> filterCropsByWeather(Weather weather) {
+    final List<Crop> crops = [
+      Crop(
+          name: 'Tomatoes',
+          temperatureRange: [20, 30],
+          humidityRange: [50, 70]),
+      Crop(
+          name: 'Lettuce', temperatureRange: [10, 20], humidityRange: [60, 80]),
+      Crop(name: 'Corn', temperatureRange: [25, 35], humidityRange: [40, 60]),
+      Crop(
+          name: 'Carrots', temperatureRange: [15, 25], humidityRange: [40, 60]),
+      Crop(
+          name: 'Potatoes',
+          temperatureRange: [10, 20],
+          humidityRange: [50, 70]),
+      // Add more crops here
+    ];
+
+    return crops.where((crop) {
+      final temp = weather.temperature;
+      final humidity = weather.humidity;
+      return temp >= crop.temperatureRange[0] &&
+          temp <= crop.temperatureRange[1] &&
+          humidity >= crop.humidityRange[0] &&
+          humidity <= crop.humidityRange[1];
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -194,15 +224,34 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             } else {
               final weather = snapshot.data!;
+              final List<Crop> suggestedCrops = filterCropsByWeather(weather);
+
               return SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWeatherDisplay(weather),
-                    const SizedBox(height: 20),
-                    _buildHourlyWeatherList(),
-                    const SizedBox(height: 20),
-                    _buildDailyWeatherCard(weather),
+                    if (suggestedCrops.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'Suggested Crops:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Column(
+                        children: suggestedCrops.map((crop) {
+                          return ListTile(
+                            title: Text(crop.name),
+                            // You can add more details about the crop here
+                          );
+                        }).toList(),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -221,9 +270,20 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToHourlyForecastScreen(context),
-        child: const Icon(Icons.access_time),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () => _navigateToHourlyForecastScreen(context),
+            child: const Icon(Icons.access_time),
+          ),
+          const SizedBox(height: 10), // Adjust spacing between buttons
+          FloatingActionButton(
+            onPressed: () => _navigateToDailyForecastScreen(context),
+            child: const Icon(Icons.calendar_today),
+          ),
+        ],
       ),
     );
   }
@@ -250,7 +310,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
           const SizedBox(height: 20),
           _buildWeatherInfoItem(
               'Location', weather.locationName, Icons.location_on),
@@ -307,52 +366,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDailyWeatherCard(Weather weather) {
-    return Card(
-      child: InkWell(
-        onTap: () => _navigateToDailyForecastScreen(context),
-        child: ListTile(
-          title: const Text('Daily Weather Info'),
-          subtitle: Text(
-            'Temperature: ${weather.temperature.toStringAsFixed(1)}°C',
-          ),
-          trailing: const Icon(Icons.arrow_forward),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHourlyWeatherList() {
-    return FutureBuilder<List<Weather>>(
-      future: _hourlyForecastData,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
-        } else {
-          final hourlyForecast = snapshot.data!;
-          return SizedBox(
-            height: 150,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: hourlyForecast.length,
-              itemBuilder: (context, index) {
-                final weather = hourlyForecast[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: HourlyWeatherCard(weather: weather),
-                );
-              },
-            ),
-          );
-        }
-      },
     );
   }
 }
