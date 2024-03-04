@@ -13,7 +13,7 @@ class WeatherService {
       'https://api.openweathermap.org/data/2.5/weather'; // Example base URL
 
   static Future<Weather> fetchWeatherData(
-      double latitude, double longitude) async {
+      double latitude, double longitude, DateTime selectedDate) async {
     try {
       if (kDebugMode) {
         print('Fetching weather data for coordinates: $latitude, $longitude');
@@ -186,7 +186,7 @@ class WeatherService {
   }
 
   static Future<List<Weather>> fetchHourlyForecast(
-      double latitude, double longitude) async {
+      double latitude, double longitude, DateTime selectedDate) async {
     try {
       final hourlyForecastUrl =
           'https://api.openweathermap.org/data/2.5/onecall'

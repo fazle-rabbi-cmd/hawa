@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/Weather.dart';
 import '../services/WeatherService.dart';
+import 'DateSelectionScreen.dart';
 import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
@@ -33,11 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _lastRefreshedTime = DateTime.now();
-    _weatherData = _fetchWeatherData();
-    _hourlyForecastData = _fetchHourlyForecastData();
+    _weatherData = _fetchWeatherData(DateTime.now());
+    _hourlyForecastData = _fetchHourlyForecastData(DateTime.now());
   }
 
-  Future<Weather> _fetchWeatherData() async {
+  Future<Weather> _fetchWeatherData(DateTime selectedDate) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -46,8 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      Weather? weather =
-          await WeatherService.fetchWeatherData(latitude, longitude);
+      Weather? weather = await WeatherService.fetchWeatherData(
+          latitude, longitude, selectedDate);
 
       if (weather != null) {
         setState(() {
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<List<Weather>> _fetchHourlyForecastData() async {
+  Future<List<Weather>> _fetchHourlyForecastData(DateTime selectedDate) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -75,8 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      List<Weather> hourlyForecast =
-          await WeatherService.fetchHourlyForecast(latitude, longitude);
+      List<Weather> hourlyForecast = await WeatherService.fetchHourlyForecast(
+          latitude, longitude, selectedDate);
 
       return hourlyForecast;
     } catch (e) {
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshWeather() async {
     setState(() {
-      _weatherData = _fetchWeatherData();
+      _weatherData = _fetchWeatherData(DateTime.now());
     });
   }
 
@@ -135,8 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
       double latitude = position.latitude;
       double longitude = position.longitude;
 
-      List<Weather> hourlyForecast =
-          await WeatherService.fetchHourlyForecast(latitude, longitude);
+      List<Weather> hourlyForecast = await WeatherService.fetchHourlyForecast(
+          latitude, longitude, DateTime.now());
 
       Navigator.push(
         context,
@@ -152,6 +153,23 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       // Handle error gracefully
     }
+  }
+
+  // Define a function to navigate to the date selection screen
+  void _navigateToDateSelectionScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DateSelectionScreen(
+          onDateSelected: (selectedDate) {
+            // Handle the selected date
+            _fetchWeatherData(selectedDate);
+            _fetchHourlyForecastData(selectedDate);
+            Navigator.pop(context); // Pop the date selection screen
+          },
+        ),
+      ),
+    );
   }
 
   // Function to filter crops based on current weather conditions
@@ -208,6 +226,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               }
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () => _navigateToDateSelectionScreen(context),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
