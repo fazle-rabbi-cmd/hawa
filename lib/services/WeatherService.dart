@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../models/Weather.dart';
 
 class WeatherService {
@@ -95,6 +96,92 @@ class WeatherService {
         print('Error fetching weather data for location: $e');
       }
       return null; // Return null in case of error
+    }
+  }
+
+  static Future<List<Weather>> fetchDailyForecast(
+      double latitude, double longitude) async {
+    try {
+      final dailyForecastUrl = 'https://api.openweathermap.org/data/2.5/onecall'
+          '?lat=$latitude&lon=$longitude&exclude=current,minutely,hourly&appid=$_apiKey';
+
+      final dailyForecastResponse = await http.get(Uri.parse(dailyForecastUrl));
+
+      if (dailyForecastResponse.statusCode == 200) {
+        final List<Weather> dailyForecast = [];
+        final dailyForecastData = json.decode(dailyForecastResponse.body);
+
+        // Extract daily forecast data and create Weather objects
+        for (var item in dailyForecastData['daily']) {
+          final weather = Weather(
+            temperature: (item['temp']['day'] as double) -
+                273.15, // Convert from Kelvin to Celsius
+            date: DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000),
+            description: item['weather'][0]['description'],
+            weatherIcon: await _fetchWeatherIcon(item['weather'][0]['icon']),
+            feelsLike: (item['feels_like']['day'] as double) - 273.15,
+            precipitation: item['rain'] != null ? item['rain'].toDouble() : 0.0,
+            windSpeed: item['wind_speed'].toDouble(),
+            windDirection: _getWindDirection(item['wind_deg'] as double),
+            humidity: item['humidity'].toInt(),
+            chanceOfRain: item['pop'].toInt(),
+            aqi: 0, // You may fetch AQI from a different API or source
+            uvIndex: 0, // You may fetch UV index from a different API or source
+            pressure: item['pressure'].toInt(),
+            visibility: item['visibility'].toDouble(),
+            sunriseTime: _formatDateTime(item['sunrise'] * 1000),
+            sunsetTime: _formatDateTime(item['sunset'] * 1000),
+            locationName: '', // You may set the location name here
+          );
+          dailyForecast.add(weather);
+        }
+
+        return dailyForecast;
+      } else {
+        throw Exception('Failed to fetch daily forecast data');
+      }
+    } catch (e) {
+      print('Error fetching daily forecast: $e');
+      throw Exception('Failed to fetch daily forecast data');
+    }
+  }
+
+  static String _formatDateTime(int millisecondsSinceEpoch) {
+    final DateTime dateTime =
+        DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch * 1000);
+    return DateFormat.jm().format(dateTime);
+  }
+
+  static String _getWindDirection(double degrees) {
+    const List<String> directions = [
+      'N',
+      'NNE',
+      'NE',
+      'ENE',
+      'E',
+      'ESE',
+      'SE',
+      'SSE',
+      'S',
+      'SSW',
+      'SW',
+      'WSW',
+      'W',
+      'WNW',
+      'NW',
+      'NNW'
+    ];
+    final index = ((degrees + 11.25) % 360 / 22.5).floor();
+    return directions[index % 16];
+  }
+
+  static Future<Uint8List> _fetchWeatherIcon(String iconCode) async {
+    final url = '$_iconBaseUrl/$iconCode@2x.png';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to load weather icon');
     }
   }
 }

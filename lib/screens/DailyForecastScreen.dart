@@ -33,13 +33,46 @@ class DailyForecastScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(weather.description),
-                  Text('${weather.temperature.toStringAsFixed(1)}°C'),
+                  SizedBox(height: 4),
+                  _buildWeatherInfoRow('Temperature',
+                      '${weather.temperature.toStringAsFixed(1)}°C'),
+                  _buildWeatherInfoRow('Feels Like',
+                      '${weather.feelsLike.toStringAsFixed(1)}°C'),
+                  _buildWeatherInfoRow(
+                      'Precipitation', '${weather.precipitation} mm/h'),
+                  _buildWeatherInfoRow(
+                      'Wind Speed', '${weather.windSpeed} m/s'),
+                  _buildWeatherInfoRow(
+                      'Wind Direction', '${weather.windDirection}°'),
+                  _buildWeatherInfoRow('Humidity', '${weather.humidity}%'),
+                  _buildWeatherInfoRow(
+                      'Chance of Rain', '${weather.chanceOfRain}%'),
+                  _buildWeatherInfoRow('AQI', '${weather.aqi}'),
+                  _buildWeatherInfoRow('UV Index', '${weather.uvIndex}'),
+                  _buildWeatherInfoRow('Pressure', '${weather.pressure} hPa'),
+                  _buildWeatherInfoRow(
+                      'Visibility', '${weather.visibility} km'),
+                  _buildWeatherInfoRow('Sunrise Time', weather.sunriseTime),
+                  _buildWeatherInfoRow('Sunset Time', weather.sunsetTime),
+                  SizedBox(height: 4),
                 ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildWeatherInfoRow(String title, String value) {
+    return Row(
+      children: [
+        Text(
+          '$title: ',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Text(value),
+      ],
     );
   }
 }

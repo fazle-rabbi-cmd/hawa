@@ -72,15 +72,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToDailyForecastScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DailyForecastScreen(
-          dailyForecast: [], // Pass daily forecast data here
+  void _navigateToDailyForecastScreen(BuildContext context) async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+
+      List<Weather> dailyForecast =
+          await WeatherService.fetchDailyForecast(latitude, longitude);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DailyForecastScreen(
+            dailyForecast: dailyForecast,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Error navigating to daily forecast screen: $e');
+      // Handle error gracefully
+    }
   }
 
   @override
