@@ -6,7 +6,7 @@ class SplashScreenWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue, // Background color
+      backgroundColor: Colors.transparent, // Background color
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -14,19 +14,19 @@ class SplashScreenWidget extends StatelessWidget {
             children: [
               // Logo
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(50.0),
                 child: Image.asset(
                   'assets/custom_logo.png', // Path to your custom logo image
-                  width: 150, // Logo width
-                  height: 150, // Logo height
-                  color: Colors.white, // Logo color
+                  width: 100, // Logo width
+                  height: 100, // Logo height
+                  color: Colors.transparent, // Logo color
                 ),
               ),
               // App name
               Text(
                 'Hawa',
                 style: TextStyle(
-                  color: Colors.white, // Text color
+                  color: Colors.transparent, // Text color
                   fontSize: 24, // Text size
                   fontWeight: FontWeight.bold, // Text weight
                 ),
