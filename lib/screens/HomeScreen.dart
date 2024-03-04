@@ -7,7 +7,6 @@ import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
 import 'DailyForecastScreen.dart';
-import 'package:hawa/widgets/HourlyWeatherCard.dart';
 import '../models/crop.dart'; // Import the Crop model
 
 class HomeScreen extends StatefulWidget {
@@ -217,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
           future: _weatherData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(
                 child: Text('Error: ${snapshot.error}'),
@@ -227,43 +226,50 @@ class _HomeScreenState extends State<HomeScreen> {
               final List<Crop> suggestedCrops = filterCropsByWeather(weather);
 
               return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWeatherDisplay(weather),
-                    if (suggestedCrops.isNotEmpty) ...[
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildWeatherDisplay(weather),
                       const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
+                      if (suggestedCrops.isNotEmpty) ...[
+                        Text(
                           'Suggested Crops:',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      Column(
-                        children: suggestedCrops.map((crop) {
-                          return ListTile(
-                            title: Text(crop.name),
-                            // You can add more details about the crop here
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
+                        const SizedBox(height: 10),
+                        Container(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: suggestedCrops.length,
+                            itemBuilder: (context, index) {
+                              final crop = suggestedCrops[index];
+                              return Card(
+                                elevation: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(crop.name),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      Text(
                         'Last Updated: ${DateFormat.yMd().add_jm().format(_lastRefreshedTime)}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           color: Theme.of(context).textTheme.caption!.color,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }
@@ -278,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _navigateToHourlyForecastScreen(context),
             child: const Icon(Icons.access_time),
           ),
-          const SizedBox(height: 10), // Adjust spacing between buttons
+          const SizedBox(height: 10),
           FloatingActionButton(
             onPressed: () => _navigateToDailyForecastScreen(context),
             child: const Icon(Icons.calendar_today),
@@ -289,83 +295,122 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWeatherDisplay(Weather weather) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.memory(
-                weather.weatherIcon,
-                width: 48,
-                height: 48,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                weather.description,
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildWeatherInfoItem(
-              'Location', weather.locationName, Icons.location_on),
-          _buildWeatherInfoItem('Temperature',
-              '${weather.temperature.toStringAsFixed(1)}°C', Icons.thermostat),
-          _buildWeatherInfoItem('Feels Like',
-              '${weather.feelsLike.toStringAsFixed(1)}°C', Icons.thermostat),
-          _buildWeatherInfoItem(
-              'Precipitation', '${weather.precipitation}', Icons.cloud),
-          _buildWeatherInfoItem(
-              'Wind Speed', '${weather.windSpeed} m/s', Icons.toys),
-          _buildWeatherInfoItem(
-              'Wind Direction', weather.windDirection, Icons.navigation),
-          _buildWeatherInfoItem(
-              'Humidity', '${weather.humidity}%', Icons.water_drop),
-          _buildWeatherInfoItem(
-              'Chance of Rain', '${weather.chanceOfRain}%', Icons.grain),
-          _buildWeatherInfoItem('AQI', '${weather.aqi}', Icons.cloud_queue),
-          _buildWeatherInfoItem(
-              'UV Index', '${weather.uvIndex}', Icons.wb_sunny),
-          _buildWeatherInfoItem(
-              'Pressure', '${weather.pressure} hPa', Icons.compress),
-          _buildWeatherInfoItem(
-              'Visibility', '${weather.visibility} km', Icons.visibility),
-          _buildWeatherInfoItem(
-              'Sunrise Time', weather.sunriseTime, Icons.wb_sunny_outlined),
-          _buildWeatherInfoItem(
-              'Sunset Time', weather.sunsetTime, Icons.nightlight_round),
-        ],
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  weather.locationName,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${weather.temperature.toStringAsFixed(1)}°C',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  weather.description,
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  'Feels Like ${weather.feelsLike.toStringAsFixed(1)}°C',
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWeatherInfoItem('Precipitation',
+                        '${weather.precipitation}', Icons.cloud),
+                    _buildWeatherInfoItem(
+                        'Wind Speed', '${weather.windSpeed} m/s', Icons.toys),
+                    _buildWeatherInfoItem(
+                        'Humidity', '${weather.humidity}%', Icons.water_drop),
+                    _buildWeatherInfoItem('Chance of Rain',
+                        '${weather.chanceOfRain}%', Icons.grain),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWeatherInfoItem(
+                        'AQI', '${weather.aqi}', Icons.cloud_queue),
+                    _buildWeatherInfoItem(
+                        'UV Index', '${weather.uvIndex}', Icons.wb_sunny),
+                    _buildWeatherInfoItem(
+                        'Pressure', '${weather.pressure} hPa', Icons.compress),
+                    _buildWeatherInfoItem('Visibility',
+                        '${weather.visibility} km', Icons.visibility),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildWeatherInfoItem(
+                    'Sunrise', weather.sunriseTime, Icons.wb_sunny_outlined),
+                _buildWeatherInfoItem(
+                    'Sunset', weather.sunsetTime, Icons.nightlight_round),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildWeatherInfoItem(String title, String value, IconData iconData) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(iconData),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
+    return Row(
+      children: [
+        Icon(
+          iconData,
+          size: 16,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
