@@ -58,6 +58,7 @@ class WeatherService {
             locationName: locationName,
             weatherIcon: weatherIcon,
             date: DateTime.now(),
+            condition: '',
           );
         } else {
           throw Exception('Failed to fetch weather icon');
@@ -131,7 +132,8 @@ class WeatherService {
             visibility: item['visibility'].toDouble(),
             sunriseTime: _formatDateTime(item['sunrise'] * 1000),
             sunsetTime: _formatDateTime(item['sunset'] * 1000),
-            locationName: '', // You may set the location name here
+            locationName: '',
+            condition: '', // You may set the location name here
           );
           dailyForecast.add(weather);
         }
@@ -219,7 +221,8 @@ class WeatherService {
             visibility: item['visibility'].toDouble(),
             sunriseTime: '', // No sunrise time available for hourly forecast
             sunsetTime: '', // No sunset time available for hourly forecast
-            locationName: '', // You may set the location name here
+            locationName: '',
+            condition: '', // You may set the location name here
           );
           hourlyForecast.add(weather);
         }
