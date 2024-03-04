@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/Weather.dart';
 import '../services/WeatherService.dart';
+import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
 import 'DailyForecastScreen.dart';
+import 'package:hawa/widgets/HourlyWeatherCard.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -23,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Weather> _weatherData;
+  late Future<List<Weather>> _hourlyForecastData;
   late DateTime _lastRefreshedTime;
 
   @override
@@ -30,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _lastRefreshedTime = DateTime.now();
     _weatherData = _fetchWeatherData();
+    _hourlyForecastData = _fetchHourlyForecastData();
   }
 
   Future<Weather> _fetchWeatherData() async {
@@ -56,6 +60,25 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('Error fetching weather data: $e');
       rethrow;
+    }
+  }
+
+  Future<List<Weather>> _fetchHourlyForecastData() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+
+      List<Weather> hourlyForecast =
+          await WeatherService.fetchHourlyForecast(latitude, longitude);
+
+      return hourlyForecast;
+    } catch (e) {
+      print('Error fetching hourly forecast data: $e');
+      throw Exception('Failed to fetch hourly forecast data');
     }
   }
 
@@ -94,6 +117,32 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       print('Error navigating to daily forecast screen: $e');
+      // Handle error gracefully
+    }
+  }
+
+  void _navigateToHourlyForecastScreen(BuildContext context) async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+
+      List<Weather> hourlyForecast =
+          await WeatherService.fetchHourlyForecast(latitude, longitude);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HourlyForecastScreen(
+            hourlyForecast: hourlyForecast,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error fetching hourly forecast data: $e');
       // Handle error gracefully
     }
   }
@@ -150,6 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWeatherDisplay(weather),
+                    const SizedBox(height: 20),
+                    _buildHourlyWeatherList(),
+                    const SizedBox(height: 20),
                     _buildDailyWeatherCard(weather),
                     const SizedBox(height: 20),
                     Padding(
@@ -170,8 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToDailyForecastScreen(context),
-        child: const Icon(Icons.calendar_today),
+        onPressed: () => _navigateToHourlyForecastScreen(context),
+        child: const Icon(Icons.access_time),
       ),
     );
   }
@@ -270,6 +322,37 @@ class _HomeScreenState extends State<HomeScreen> {
           trailing: const Icon(Icons.arrow_forward),
         ),
       ),
+    );
+  }
+
+  Widget _buildHourlyWeatherList() {
+    return FutureBuilder<List<Weather>>(
+      future: _hourlyForecastData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else {
+          final hourlyForecast = snapshot.data!;
+          return SizedBox(
+            height: 150,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: hourlyForecast.length,
+              itemBuilder: (context, index) {
+                final weather = hourlyForecast[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: HourlyWeatherCard(weather: weather),
+                );
+              },
+            ),
+          );
+        }
+      },
     );
   }
 }

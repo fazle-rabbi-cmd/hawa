@@ -184,4 +184,53 @@ class WeatherService {
       throw Exception('Failed to load weather icon');
     }
   }
+
+  static Future<List<Weather>> fetchHourlyForecast(
+      double latitude, double longitude) async {
+    try {
+      final hourlyForecastUrl =
+          'https://api.openweathermap.org/data/2.5/onecall'
+          '?lat=$latitude&lon=$longitude&exclude=current,minutely,daily&appid=$_apiKey';
+
+      final hourlyForecastResponse =
+          await http.get(Uri.parse(hourlyForecastUrl));
+
+      if (hourlyForecastResponse.statusCode == 200) {
+        final List<Weather> hourlyForecast = [];
+        final hourlyForecastData = json.decode(hourlyForecastResponse.body);
+
+        // Extract hourly forecast data and create Weather objects
+        for (var item in hourlyForecastData['hourly']) {
+          final weather = Weather(
+            temperature: (item['temp'] as double) -
+                273.15, // Convert from Kelvin to Celsius
+            date: DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000),
+            description: item['weather'][0]['description'],
+            weatherIcon: await _fetchWeatherIcon(item['weather'][0]['icon']),
+            feelsLike: (item['feels_like'] as double) - 273.15,
+            precipitation: item['rain'] != null ? item['rain'].toDouble() : 0.0,
+            windSpeed: item['wind_speed'].toDouble(),
+            windDirection: _getWindDirection(item['wind_deg'] as double),
+            humidity: item['humidity'].toInt(),
+            chanceOfRain: item['pop'].toInt(),
+            aqi: 0, // You may fetch AQI from a different API or source
+            uvIndex: 0, // You may fetch UV index from a different API or source
+            pressure: item['pressure'].toInt(),
+            visibility: item['visibility'].toDouble(),
+            sunriseTime: '', // No sunrise time available for hourly forecast
+            sunsetTime: '', // No sunset time available for hourly forecast
+            locationName: '', // You may set the location name here
+          );
+          hourlyForecast.add(weather);
+        }
+
+        return hourlyForecast;
+      } else {
+        throw Exception('Failed to fetch hourly forecast data');
+      }
+    } catch (e) {
+      print('Error fetching hourly forecast: $e');
+      throw Exception('Failed to fetch hourly forecast data');
+    }
+  }
 }
