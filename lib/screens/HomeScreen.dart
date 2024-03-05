@@ -8,6 +8,7 @@ import 'package:hawa/screens/DateSelectionScreen.dart';
 import 'HourlyForecastScreen.dart';
 import 'SettingsScreen.dart';
 import 'SearchScreen.dart';
+import 'package:hawa/screens/RadarMapScreen.dart';
 import 'DailyForecastScreen.dart';
 import '../models/crop.dart';
 import '../widgets/WeatherCard.dart';
@@ -192,6 +193,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _navigateToRadarMapScreen(BuildContext context) {
+    // Navigate to RadarMapScreen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => RadarMapScreen(
+                radarMapImageUrl: '',
+                satelliteMapImageUrl: '',
+              )),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -221,6 +234,11 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () => _navigateToDateSelectionScreen(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.map),
+            onPressed: () => _navigateToRadarMapScreen(
+                context), // Navigate to RadarMapScreen
           ),
           IconButton(
             icon: const Icon(Icons.settings),
