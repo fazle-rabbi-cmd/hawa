@@ -168,15 +168,43 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // void _navigateToDateSelectionScreen(BuildContext context) async {
+  //   DateTime? selectedDate = await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => DateSelectionScreen(
+  //         onDateSelected: (selectedDate) async {
+  //           _selectedDate = selectedDate;
+  //           _weatherData = _fetchWeatherData(_selectedDate);
+  //           _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
+  //           Navigator.pop(context);
+  //         },
+  //         initialDate: _selectedDate,
+  //       ),
+  //     ),
+  //   );
+  //
+  //   if (selectedDate != null) {
+  //     setState(() {
+  //       _selectedDate = selectedDate;
+  //       _weatherData = _fetchWeatherData(_selectedDate);
+  //       _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
+  //     });
+  //   }
+  // }
   void _navigateToDateSelectionScreen(BuildContext context) async {
     DateTime? selectedDate = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DateSelectionScreen(
           onDateSelected: (selectedDate) async {
-            _selectedDate = selectedDate;
-            _weatherData = _fetchWeatherData(_selectedDate);
-            _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
+            setState(() {
+              _selectedDate = selectedDate; // Update selected date here
+            });
+            _weatherData = _fetchWeatherData(
+                _selectedDate); // Fetch weather data with selected date
+            _hourlyForecastData = _fetchHourlyForecastData(
+                _selectedDate); // Fetch hourly forecast data with selected date
             Navigator.pop(context);
           },
           initialDate: _selectedDate,
@@ -184,13 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    if (selectedDate != null) {
-      setState(() {
-        _selectedDate = selectedDate;
-        _weatherData = _fetchWeatherData(_selectedDate);
-        _hourlyForecastData = _fetchHourlyForecastData(_selectedDate);
-      });
-    }
+    // No need to update selectedDate outside the callback function
   }
 
   void _navigateToRadarMapScreen(BuildContext context) {

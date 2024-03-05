@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -133,7 +135,8 @@ class WeatherService {
             sunriseTime: _formatDateTime(item['sunrise'] * 1000),
             sunsetTime: _formatDateTime(item['sunset'] * 1000),
             locationName: '',
-            condition: '', // You may set the location name here
+            condition: '',
+            // You may set the location name here
           );
           dailyForecast.add(weather);
         }
@@ -222,7 +225,8 @@ class WeatherService {
             sunriseTime: '', // No sunrise time available for hourly forecast
             sunsetTime: '', // No sunset time available for hourly forecast
             locationName: '',
-            condition: '', // You may set the location name here
+            condition: '',
+            // You may set the location name here
           );
           hourlyForecast.add(weather);
         }
